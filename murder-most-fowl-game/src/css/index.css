@@ -2,10 +2,10 @@
 
 @font-face {
   font-family: Scary;
-  src: url('../fonts/NewRocker-Regular.ttf');
+  src: url("../fonts/NewRocker-Regular.ttf");
 }
 @import "tailwindcss";
 
-@theme{
+@theme {
   --font-scary: Scary, "sans-serif";
 }
