@@ -1,0 +1,11 @@
+/* @import url('https://fonts.googleapis.com/css2?family=New+Rocker&display=swap'); */
+
+@font-face {
+  font-family: Scary;
+  src: url('../fonts/NewRocker-Regular.ttf');
+}
+@import "tailwindcss";
+
+@theme{
+  --font-scary: Scary, "sans-serif";
+}
