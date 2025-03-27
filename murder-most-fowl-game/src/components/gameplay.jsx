@@ -1,12 +1,39 @@
 import React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import Dashboard from "./Dashboard";
 
 export default function Gameplay() {
   const [currentNode, setCurrentNode] = useState("start"); // change target word to go through each scenario
+  const [showDashboard, setShowDashboard] = useState(false);
+  
+  useEffect(() => {
+    const savedNode = localStorage.getItem("currentNode");
+    if (savedNode) {
+      setCurrentNode(savedNode);
+    }
+  }, []);
+
   const handleChoice = (next) => {
-    // next == "end" ? setCurrentNode("start") : setCurrentNode(next);
     setCurrentNode(next);
+    localStorage.setItem("currentNode", next); // Save progress
   };
+
+  const saveGame = () => {
+    const saveFiles = JSON.parse(localStorage.getItem("saveFiles")) || [];
+    const newSave = {
+      name: `Save ${saveFiles.length + 1}`,
+      currentNode,
+    };
+    saveFiles.push(newSave);
+    localStorage.setItem("saveFiles", JSON.stringify(saveFiles));
+    // alert("Game saved!"); // change to something else, like going to the dashboard after instead
+    setShowDashboard(true) // goes to dashboard instead of showing alert
+  };
+
+  if (showDashboard) {
+    return <Dashboard />
+  }
+
 
   const storyData = {
     start: {
@@ -320,6 +347,8 @@ export default function Gameplay() {
     },
   };
 
+  const currentStory = storyData[currentNode];
+
   return (
     <div className="my-10 w-1/2 flex flex-col items-center mx-auto">
       {console.log(storyData[currentNode])}
@@ -343,6 +372,12 @@ export default function Gameplay() {
           </button>
         ))}
       </div>
+      <button
+        onClick={saveGame}
+        className="p-3 border-1 border-blue-700 text-blue-700 rounded-md mt-5"
+      >
+        Return to Dashboard
+      </button> 
     </div>
   );
 }

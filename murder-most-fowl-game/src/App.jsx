@@ -2,6 +2,7 @@ import { useState } from "react";
 import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
 import Header from "./components/Header";
+import Dashboard from "./components/Dashboard";
 import Gameplay from "./components/gameplay";
 
 function App() {
@@ -11,7 +12,8 @@ function App() {
     <>
       <div>
         <Header />
-        <Gameplay />
+        <Dashboard />
+        {/* <Gameplay /> */}
       </div>
     </>
   );
