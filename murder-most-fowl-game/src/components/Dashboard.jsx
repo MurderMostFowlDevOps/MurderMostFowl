@@ -1,6 +1,7 @@
 import React from "react";
 import { useState, useEffect } from "react";
 import Gameplay from "./gameplay";
+import Counter from "./Counter";
 
 export default function Dashboard() {
   const [showGameplay, setShowGameplay] = useState(false);
@@ -76,6 +77,13 @@ export default function Dashboard() {
           Platform Comparison
         </button>
       </div>
+
+
+
+      {/* this is the counter analyitics  */}
+      <h1 className="text-3xl font-bold mb-6">DevOps Dashboard</h1>
+      <Counter />
+
       
       {/* Content based on active tab */}
       <div className="w-full">
