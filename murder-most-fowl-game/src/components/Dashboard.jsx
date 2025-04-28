@@ -1,6 +1,7 @@
 import React from "react";
 import { useState, useEffect } from "react";
 import Gameplay from "./gameplay";
+import { getBuildData } from "../helpers/getBuildData";
 
 export default function Dashboard() {
   const [showGameplay, setShowGameplay] = useState(false);
@@ -36,6 +37,30 @@ export default function Dashboard() {
       loadTime: "1.5s"
     }
   });
+  const [githubBuilds, setGithubBuilds] = useState([]);
+
+  useEffect(() => {
+    const fetchBuildData = async () => {
+      const builds = await getBuildData();
+      setGithubBuilds(builds);
+      
+      // Update deployment data with the latest build
+      if (builds.length > 0) {
+        const latestBuild = builds[0];
+        setDeploymentData(prev => ({
+          ...prev,
+          github: {
+            ...prev.github,
+            status: latestBuild.status,
+            lastDeployed: latestBuild.date,
+            buildTime: latestBuild.buildTime
+          }
+        }));
+      }
+    };
+
+    fetchBuildData();
+  }, []);
 
   const returnToGame = () => {
     setShowGameplay(true);
@@ -77,8 +102,6 @@ export default function Dashboard() {
         </button>
       </div>
 
-
-      
       {/* Content based on active tab */}
       <div className="w-full">
         {activeTab === "overview" && (
@@ -342,18 +365,20 @@ export default function Dashboard() {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
+                    {githubBuilds.map((build, index) => (
+                      <tr key={index}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{build.date}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{build.platform}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                            {build.status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{build.buildTime}</td>
+                      </tr>
+                    ))}
                     <tr>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Apr 19, 2025 14:30</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">GitHub</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                          Success
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">45s</td>
-                    </tr>
-                    <tr>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Apr 19, 2025 14:25</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025-04-19 14:25</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Vercel</td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
@@ -361,16 +386,6 @@ export default function Dashboard() {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">38s</td>
-                    </tr>
-                    <tr>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Apr 18, 2025 10:15</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">GitHub</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                          Success
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">47s</td>
                     </tr>
                   </tbody>
                 </table>
@@ -395,13 +410,13 @@ export default function Dashboard() {
                 <tbody className="bg-white divide-y divide-gray-200">
                   <tr>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">Build Time</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">45s</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">38s</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{deploymentData.github.buildTime}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{deploymentData.vercel.buildTime}</td>
                   </tr>
                   <tr>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">Response Time</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">220ms</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">180ms</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{performanceData.github.responseTime}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{performanceData.vercel.responseTime}</td>
                   </tr>
                   <tr>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">Security Features</td>
