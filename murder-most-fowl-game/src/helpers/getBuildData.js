@@ -4,6 +4,51 @@ const OWNER = 'MurderMostFowlDevOps';
 const REPO = 'MurderMostFowl';
 const GITHUB_API_URL = `https://api.github.com/repos/${OWNER}/${REPO}/actions/runs`;
 
+const VERCEL_API_URL = import.meta.env.VITE_VERCEL_URL
+const VERCEL_TOKEN = import.meta.env.VITE_VERCEL_TOKEN;
+
+if (!VERCEL_TOKEN) {
+    console.error('VERCEL_TOKEN environment variable is not set');
+}
+
+export async function getVercelBuildData() {
+    try {
+        const headers = {
+            Authorization: `Bearer ${VERCEL_TOKEN}`,
+        };
+
+        const res = await axios.get(VERCEL_API_URL, {
+            headers,
+            params: {
+                limit: 50,
+                project: 'MurderMostFowl'
+            }
+        });
+
+        const cutoffDate = new Date('2025-01-01');
+
+        const builds = res.data.deployments
+            .filter(deploy => new Date(deploy.createdAt) >= cutoffDate)
+            .map(deploy => {
+                const created = new Date(deploy.createdAt);
+                const ready = deploy.ready ? new Date(deploy.ready) : null;
+                const buildTimeSeconds = ready ? Math.round((ready - created) / 1000) : null;
+
+                return {
+                    date: formatDate(created),
+                    platform: 'Vercel',
+                    status: deploy.state === 'READY' ? 'Success' : capitalize(deploy.state),
+                    buildTime: buildTimeSeconds ? `${buildTimeSeconds}s` : 'N/A'
+                };
+            });
+
+        return builds.filter(build => build.status === 'Success');
+    } catch (e) {
+        console.error('Error fetching Vercel builds:', e);
+        return [];
+    }
+}
+
 export async function getBuildData() {
     try {
         const headers = {

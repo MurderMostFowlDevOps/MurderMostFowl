@@ -1,7 +1,7 @@
 import React from "react";
 import { useState, useEffect } from "react";
 import Gameplay from "./gameplay";
-import { getBuildData } from "../helpers/getBuildData";
+import { getBuildData, getVercelBuildData } from "../helpers/getBuildData";
 
 export default function Dashboard() {
   const [showGameplay, setShowGameplay] = useState(false);
@@ -38,24 +38,47 @@ export default function Dashboard() {
     }
   });
   const [githubBuilds, setGithubBuilds] = useState([]);
+  const [vercelBuilds, setVercelBuilds] = useState([]);
 
   useEffect(() => {
     const fetchBuildData = async () => {
-      const builds = await getBuildData();
-      setGithubBuilds(builds);
-      
-      // Update deployment data with the latest build
-      if (builds.length > 0) {
-        const latestBuild = builds[0];
-        setDeploymentData(prev => ({
-          ...prev,
-          github: {
-            ...prev.github,
-            status: latestBuild.status,
-            lastDeployed: latestBuild.date,
-            buildTime: latestBuild.buildTime
-          }
-        }));
+      try {
+        // Fetch GitHub builds
+        const githubBuilds = await getBuildData();
+        setGithubBuilds(githubBuilds);
+        
+        // Fetch Vercel builds
+        const vercelBuilds = await getVercelBuildData();
+        setVercelBuilds(vercelBuilds);
+        
+        // Update deployment data with the latest builds
+        if (githubBuilds.length > 0) {
+          const latestGithubBuild = githubBuilds[0];
+          setDeploymentData(prev => ({
+            ...prev,
+            github: {
+              ...prev.github,
+              status: latestGithubBuild.status,
+              lastDeployed: latestGithubBuild.date,
+              buildTime: latestGithubBuild.buildTime
+            }
+          }));
+        }
+
+        if (vercelBuilds.length > 0) {
+          const latestVercelBuild = vercelBuilds[0];
+          setDeploymentData(prev => ({
+            ...prev,
+            vercel: {
+              ...prev.vercel,
+              status: latestVercelBuild.status,
+              lastDeployed: latestVercelBuild.date,
+              buildTime: latestVercelBuild.buildTime
+            }
+          }));
+        }
+      } catch (error) {
+        console.error('Error fetching build data:', error);
       }
     };
 
@@ -365,28 +388,24 @@ export default function Dashboard() {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {githubBuilds.map((build, index) => (
-                      <tr key={index}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{build.date}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{build.platform}</td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                            {build.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{build.buildTime}</td>
-                      </tr>
+                    {[...githubBuilds, ...vercelBuilds]
+                      .sort((a, b) => new Date(b.date) - new Date(a.date))
+                      .map((build, index) => (
+                        <tr key={index}>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{build.date}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{build.platform}</td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                              build.status === 'Success' 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-red-100 text-red-800'
+                            }`}>
+                              {build.status}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{build.buildTime}</td>
+                        </tr>
                     ))}
-                    <tr>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025-04-19 14:25</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Vercel</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                          Success
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">38s</td>
-                    </tr>
                   </tbody>
                 </table>
               </div>
